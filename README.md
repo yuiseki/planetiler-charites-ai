@@ -8,9 +8,7 @@ The web UI lets you type things like *“parks in green”* or *“thicker roads
 
 [![Image from Gyazo](https://i.gyazo.com/08c303fe39b4e4bf48bbc6514873131b.jpg)](https://gyazo.com/08c303fe39b4e4bf48bbc6514873131b)
 
-> No hosted demo -- same policy as [charites-ai](https://github.com/yuiseki/charites-ai). The agent runs `claude -p` with shell write access to this repo, which is too much authority to expose on a public URL. Clone and run locally to try it.
->
-> Locally the agent is scoped tight: `--permission-mode acceptEdits` plus an explicit `--allowedTools "Read Edit Write Glob Grep Bash(make {theme}-build) Bash(ls *) Bash(cat *)"`. Anything outside that list raises a permission prompt that `-p` cannot answer, so the agent fails loudly instead of silently doing something we didn't authorise.
+> No hosted demo -- same policy as [charites-ai](https://github.com/yuiseki/charites-ai).
 
 ## Lineage
 
