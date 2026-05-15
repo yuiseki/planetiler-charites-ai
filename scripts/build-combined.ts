@@ -1,0 +1,178 @@
+/**
+ * Build a theme that co-locates Planetiler schema and MapLibre style in one
+ * file per layer.
+ *
+ *   tsx scripts/build-combined.ts <theme-name>
+ *
+ * Layout (see themes/monaco_combined/ for the reference):
+ *
+ *   themes/<name>/
+ *     _meta.yml         schema-only top-level (schema_name, attribution, ...)
+ *     _sources.yml      schema-only data sources
+ *     _style-root.yml   style-only top-level (version, glyphs, sources)
+ *     layers/
+ *       NN-<id>.yml     { schema?, style? } -- at least one is required
+ *
+ * Contract enforced at build time:
+ *   - schema.id MUST equal style.source-layer (when both are present)
+ *   - layer ids MUST be unique within the theme
+ *   - schema.id / style.id MUST equal the filename stem (after the NN- prefix)
+ *
+ * Outputs:
+ *   data/<name>.yml         Planetiler schema, merged
+ *   data/<name>.style.yml   MapLibre style as YAML (inspection / diff)
+ *   data/<name>.json        MapLibre style.json (tileserver-gl)
+ */
+import fs from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+import YAML from "yaml";
+
+type LayerFile = {
+  filePath: string;
+  stem: string;
+  schema?: Record<string, unknown> & { id?: string };
+  style?: Record<string, unknown> & { id?: string; "source-layer"?: string };
+};
+
+const themeName = process.argv[2];
+if (!themeName) {
+  console.error("Usage: build-combined.ts <theme-name>");
+  process.exit(1);
+}
+
+const themeDir = path.resolve("themes", themeName);
+const layersDir = path.join(themeDir, "layers");
+
+const stripHeader = (text: string): string =>
+  text
+    .split("\n")
+    .filter((line) => !line.startsWith("#"))
+    .join("\n");
+
+const readYaml = async <T>(p: string): Promise<T> => {
+  const text = await fs.readFile(p, "utf-8");
+  return YAML.parse(stripHeader(text)) as T;
+};
+
+const stemOf = (filename: string): string =>
+  filename.replace(/\.ya?ml$/, "").replace(/^\d+-/, "");
+
+const main = async () => {
+  const meta = await readYaml<Record<string, unknown>>(
+    path.join(themeDir, "_meta.yml"),
+  );
+  const sources = await readYaml<{ sources: Record<string, unknown> }>(
+    path.join(themeDir, "_sources.yml"),
+  );
+  const styleRoot = await readYaml<Record<string, unknown>>(
+    path.join(themeDir, "_style-root.yml"),
+  );
+
+  const layerFilenames = (await fs.readdir(layersDir))
+    .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"))
+    .sort();
+
+  const layers: LayerFile[] = [];
+  for (const f of layerFilenames) {
+    const parsed = await readYaml<{
+      schema?: Record<string, unknown> & { id?: string };
+      style?: Record<string, unknown> & {
+        id?: string;
+        "source-layer"?: string;
+      };
+    }>(path.join(layersDir, f));
+    layers.push({
+      filePath: path.join(layersDir, f),
+      stem: stemOf(f),
+      schema: parsed?.schema,
+      style: parsed?.style,
+    });
+  }
+
+  // ---- Contract checks ----
+  const errors: string[] = [];
+  const seenIds = new Set<string>();
+
+  for (const l of layers) {
+    if (!l.schema && !l.style) {
+      errors.push(`${l.filePath}: must define at least one of schema/style`);
+      continue;
+    }
+    const uniqueIds = Array.from(
+      new Set([l.schema?.id, l.style?.id].filter(Boolean) as string[]),
+    );
+    for (const id of uniqueIds) {
+      if (seenIds.has(id)) errors.push(`duplicate layer id "${id}"`);
+      seenIds.add(id);
+    }
+    if (l.schema && l.style) {
+      if (l.schema.id !== l.style["source-layer"]) {
+        errors.push(
+          `${l.filePath}: schema.id "${l.schema.id}" must equal style.source-layer "${l.style["source-layer"]}"`,
+        );
+      }
+      if (l.schema.id !== l.style.id) {
+        errors.push(
+          `${l.filePath}: by convention schema.id ("${l.schema.id}") and style.id ("${l.style.id}") should match`,
+        );
+      }
+    }
+    const expectedStem = l.schema?.id ?? l.style?.id;
+    if (expectedStem && expectedStem !== l.stem) {
+      errors.push(
+        `${l.filePath}: filename stem "${l.stem}" must match layer id "${expectedStem}"`,
+      );
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error("Contract violations:");
+    for (const e of errors) console.error("  - " + e);
+    process.exit(1);
+  }
+
+  // ---- Emit Planetiler schema ----
+  const planetilerLayers = layers
+    .filter((l) => l.schema)
+    .map((l) => l.schema!);
+  const planetilerSchema = {
+    ...meta,
+    ...sources,
+    layers: planetilerLayers,
+  };
+
+  // ---- Emit MapLibre style ----
+  const styleLayers = layers.filter((l) => l.style).map((l) => l.style!);
+  const mapLibreStyle = {
+    ...styleRoot,
+    layers: styleLayers,
+  };
+
+  // ---- Write ----
+  const outDir = path.resolve("data");
+  await fs.mkdir(outDir, { recursive: true });
+  const outSchema = path.join(outDir, `${themeName}.yml`);
+  const outStyleYaml = path.join(outDir, `${themeName}.style.yml`);
+  const outStyleJson = path.join(outDir, `${themeName}.json`);
+  await fs.writeFile(
+    outSchema,
+    "# Generated by scripts/build-combined.ts.\n" +
+      YAML.stringify(planetilerSchema),
+  );
+  await fs.writeFile(
+    outStyleYaml,
+    "# Generated by scripts/build-combined.ts.\n" +
+      YAML.stringify(mapLibreStyle),
+  );
+  await fs.writeFile(outStyleJson, JSON.stringify(mapLibreStyle, null, 2));
+  console.log(
+    `wrote ${outSchema} (${planetilerLayers.length} schema layers)`,
+  );
+  console.log(`wrote ${outStyleYaml} / ${outStyleJson} (${styleLayers.length} style layers)`);
+};
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -1,0 +1,10 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - background.yml
+# Schema layer: (none -- pure paint layer)
+# Instructions:
+#   - blank canvas, the agent fills in water/roads/buildings/etc on request
+id: background
+type: background
+paint:
+  background-color: "#f5f3ee"

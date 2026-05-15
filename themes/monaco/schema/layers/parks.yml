@@ -1,0 +1,44 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: parks
+# Geometry: polygon
+# Sources: osm
+# Attributes:
+#   - class: park | garden | nature_reserve | forest | grass
+# Style consumers:
+#   - style/layers/parks.yml
+# Instructions:
+#   - parks and green spaces from osm
+#   - leisure=park, leisure=garden, leisure=nature_reserve
+#   - landuse=forest, landuse=grass for additional greenery
+- id: parks
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        leisure:
+          - park
+          - garden
+          - nature_reserve
+        landuse:
+          - forest
+          - grass
+      min_zoom: 0
+      # Override Planetiler's default polygon-size cutoff (1px) so small Monaco
+      # park polygons survive at low zoom.
+      min_size: 0
+      attributes:
+        - key: class
+          type: string
+          value:
+            match:
+              - value: park
+                if: { leisure: park }
+              - value: garden
+                if: { leisure: garden }
+              - value: nature_reserve
+                if: { leisure: nature_reserve }
+              - value: forest
+                if: { landuse: forest }
+              - value: grass
+                if: { landuse: grass }
+              - else: park

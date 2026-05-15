@@ -1,0 +1,31 @@
+# !planetiler-charites-ai style-root
+# Charites root file. `charites build` walks the !!inc/file references and
+# emits a single MapLibre style.json.
+#
+# center/zoom are standard MapLibre style spec fields and let tileserver-gl
+# open the rendered preview directly on Monaco instead of the world view.
+# bounds is non-standard but tileserver-gl reads it for rendered TileJSON.
+version: 8
+name: Monaco Minimal
+glyphs: "fonts/{fontstack}/{range}.pbf"
+center: [7.42, 43.74]
+zoom: 13
+bounds: [7.3, 43.4, 7.7, 43.8]
+sources:
+  monaco:
+    type: vector
+    url: "mbtiles://monaco"
+layers:
+  - !!inc/file layers/background.yml
+  # Sea sits directly above background so it covers the land-coloured fill
+  # outside the coastline.
+  - !!inc/file layers/sea.yml
+  - !!inc/file layers/water.yml
+  # Parks sit above water so green spaces aren't obscured by inland water tiles,
+  # but below buildings so building footprints remain on top.
+  - !!inc/file layers/parks.yml
+  - !!inc/file layers/buildings.yml
+  # roads sit on top of buildings so they remain visible when building polygons
+  # overlap road centrelines (common in Monaco's dense fabric).
+  - !!inc/file layers/roads-casing.yml
+  - !!inc/file layers/roads-fill.yml

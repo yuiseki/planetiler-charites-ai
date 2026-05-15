@@ -1,0 +1,6 @@
+# !planetiler-charites-ai schema-meta
+# This fragment supplies the top-level Planetiler schema metadata.
+# It is merged first by scripts/build-schema.ts.
+schema_name: Monaco Minimal
+schema_description: "Minimal Monaco theme (land, water, buildings) used as a PoC for AI-driven schema/style co-generation."
+attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>, <a href="http://www.naturalearthdata.com/" target="_blank">Natural Earth</a>'

@@ -1,0 +1,13 @@
+# !planetiler-charites-ai schema-sources
+# Taito theme is inland (Tokyo); no sea source needed. The agent can add
+# additional sources (e.g. building footprints, transit GTFS) on request.
+sources:
+  osm:
+    type: osm
+    local_path: /data/taito-latest.osm.pbf
+  # Authoritative Taito-ku boundary from MLIT N03 (2024-01-01). Used as the
+  # primary boundary layer; OSM admin boundaries are still rendered, but they
+  # are inconsistent for ward edges in Tokyo.
+  taito_boundary:
+    type: geojson
+    local_path: /data/taito_boundary.geojson

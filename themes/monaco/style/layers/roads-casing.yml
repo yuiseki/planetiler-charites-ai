@@ -1,0 +1,40 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - roads-casing.yml
+# Schema layer: roads
+# Reads attributes:
+#   - class
+# Instructions:
+#   - dark outer stroke (rendered before fill)
+#   - width scales by class and zoom
+id: roads-casing
+type: line
+source: monaco
+source-layer: roads
+minzoom: 11
+layout:
+  line-cap: round
+  line-join: round
+paint:
+  line-color:
+    - match
+    - ["get", "class"]
+    - "motorway"
+    - "#a06000"
+    - "trunk"
+    - "#b86b30"
+    - "primary"
+    - "#7d6b48"
+    - "secondary"
+    - "#7d6b48"
+    - "#888888"
+  line-width:
+    - interpolate
+    - ["linear"]
+    - ["zoom"]
+    - 11
+    - ["match", ["get", "class"], "motorway", 2.5, "trunk", 2, "primary", 1.5, 0.5]
+    - 14
+    - ["match", ["get", "class"], "motorway", 6, "trunk", 5, "primary", 4, "secondary", 3.5, "tertiary", 3, "minor", 2.5, "service", 1.5, 1]
+    - 18
+    - ["match", ["get", "class"], "motorway", 24, "trunk", 20, "primary", 16, "secondary", 14, "tertiary", 12, "minor", 10, "service", 6, 4]

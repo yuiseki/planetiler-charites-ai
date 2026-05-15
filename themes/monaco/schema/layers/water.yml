@@ -1,0 +1,31 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: water
+# Geometry: polygon
+# Sources: osm
+# Attributes:
+#   - class: water | river | lake
+# Style consumers:
+#   - style/layers/water.yml
+# Instructions:
+#   - water polygons from osm
+#   - rivers and lakes only (no sea -- Monaco theme uses background as sea)
+- id: water
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        natural: water
+      min_zoom: 0
+      # Override Planetiler's default polygon-size cutoff (1px) so small Monaco
+      # polygons survive at low zoom. Without this, water snaps back to z12+.
+      min_size: 0
+      attributes:
+        - key: class
+          type: string
+          value:
+            match:
+              - value: river
+                if: { water: river }
+              - value: lake
+                if: { water: lake }
+              - else: water

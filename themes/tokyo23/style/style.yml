@@ -1,0 +1,23 @@
+# !planetiler-charites-ai style-root
+# Tokyo 23 wards -- scale test theme.
+version: 8
+name: Tokyo 23 Wards
+glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf"
+center: [139.74, 35.68]
+zoom: 10
+bounds: [139.56, 35.53, 139.92, 35.82]
+sources:
+  tokyo23:
+    type: vector
+    url: "mbtiles://tokyo23"
+layers:
+  - !!inc/file layers/background.yml
+  - !!inc/file layers/parks.yml
+  - !!inc/file layers/roads.yml
+  - !!inc/file layers/railways.yml
+  - !!inc/file layers/admin.yml
+  - !!inc/file layers/admin-l7.yml
+  # Authoritative Taito-ku boundary sits above OSM admin lines.
+  - !!inc/file layers/tokyo23-boundary.yml
+  - !!inc/file layers/stations.yml
+  - !!inc/file layers/place-labels.yml

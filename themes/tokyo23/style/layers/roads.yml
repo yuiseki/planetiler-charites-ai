@@ -1,0 +1,69 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - roads.yml
+# Schema layer: roads
+# Reads attributes:
+#   - class
+# Instructions:
+#   - 道路を白くハイライト表示
+#   - roads styled by class with simple width ramp
+id: roads
+type: line
+source: tokyo23
+source-layer: roads
+layout:
+  line-cap: round
+  line-join: round
+paint:
+  line-color:
+    [
+      "match",
+      ["get", "class"],
+      ["motorway", "motorway_link"], "#f5b971",
+      ["trunk", "trunk_link"], "#f8c98c",
+      ["primary", "primary_link"], "#fcd9a3",
+      ["secondary", "secondary_link"], "#fde7c4",
+      ["tertiary", "tertiary_link"], "#ffffff",
+      "#ffffff",
+    ]
+  line-width:
+    [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      8,
+      [
+        "match",
+        ["get", "class"],
+        ["motorway", "motorway_link"], 1.2,
+        ["trunk", "trunk_link"], 1.0,
+        ["primary", "primary_link"], 0.8,
+        0.4,
+      ],
+      14,
+      [
+        "match",
+        ["get", "class"],
+        ["motorway", "motorway_link"], 6,
+        ["trunk", "trunk_link"], 5,
+        ["primary", "primary_link"], 4,
+        ["secondary", "secondary_link"], 3,
+        ["tertiary", "tertiary_link"], 2.2,
+        ["residential", "unclassified", "living_street"], 1.6,
+        ["service"], 1,
+        0.6,
+      ],
+      18,
+      [
+        "match",
+        ["get", "class"],
+        ["motorway", "motorway_link"], 20,
+        ["trunk", "trunk_link"], 16,
+        ["primary", "primary_link"], 14,
+        ["secondary", "secondary_link"], 11,
+        ["tertiary", "tertiary_link"], 8,
+        ["residential", "unclassified", "living_street"], 6,
+        ["service"], 3,
+        2,
+      ],
+    ]

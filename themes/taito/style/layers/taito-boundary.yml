@@ -1,0 +1,23 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - taito-boundary.yml
+# Schema layer: taito_boundary
+# Reads attributes: (none)
+# Instructions:
+#   - bold outline of Taito ward (authoritative MLIT polygon)
+id: taito-boundary
+type: line
+source: taito
+source-layer: taito_boundary
+paint:
+  line-color: "#1e6fff"
+  line-width:
+    - interpolate
+    - ["linear"]
+    - ["zoom"]
+    - 10
+    - 1.5
+    - 14
+    - 3
+    - 18
+    - 6

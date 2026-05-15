@@ -1,0 +1,24 @@
+# !planetiler-charites-ai style-root
+# Taito minimal -- start blank, let the AI agent fill in layers from natural
+# language instructions.
+version: 8
+name: Taito Minimal
+# Use the protomaps fonts CDN so text labels render without us having to ship
+# glyph PBFs locally.
+glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf"
+center: [139.78, 35.71]
+zoom: 13
+bounds: [139.76, 35.69, 139.81, 35.74]
+sources:
+  taito:
+    type: vector
+    url: "mbtiles://taito"
+layers:
+  - !!inc/file layers/background.yml
+  - !!inc/file layers/parks.yml
+  - !!inc/file layers/roads.yml
+  - !!inc/file layers/admin.yml
+  - !!inc/file layers/admin-l7.yml
+  # Authoritative Taito-ku boundary sits above OSM admin lines.
+  - !!inc/file layers/taito-boundary.yml
+  - !!inc/file layers/place-labels.yml

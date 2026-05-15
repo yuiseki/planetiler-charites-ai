@@ -1,0 +1,29 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "styles": "/data",
+      "mbtiles": "/data"
+    }
+  },
+  "styles": {
+    "monaco": {
+      "style": "monaco.json",
+      "tilejson": {
+        "bounds": [7.3, 43.4, 7.7, 43.8],
+        "center": [7.42, 43.74, 13]
+      }
+    },
+    "monaco_combined": {
+      "style": "monaco_combined.json"
+    }
+  },
+  "data": {
+    "monaco": {
+      "mbtiles": "monaco.mbtiles"
+    },
+    "monaco_combined": {
+      "mbtiles": "monaco_combined.mbtiles"
+    }
+  }
+}

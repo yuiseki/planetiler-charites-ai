@@ -1,0 +1,32 @@
+# !planetiler-charites-ai layer
+# Layer ID: buildings
+# Kind: combined (schema + style co-authored)
+# Instructions:
+#   - building footprints
+#   - flat fill (3d extrusion is a future upgrade)
+
+schema:
+  id: buildings
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        building: __any__
+      min_zoom: 0
+      min_size: 0
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: height
+          value: '${ feature.tags.height }'
+        - key: levels
+          value: '${ feature.tags["building:levels"] }'
+
+style:
+  id: buildings
+  type: fill
+  source: monaco_combined
+  source-layer: buildings
+  paint:
+    fill-color: "#d6cfc1"
+    fill-outline-color: "#b3a98f"

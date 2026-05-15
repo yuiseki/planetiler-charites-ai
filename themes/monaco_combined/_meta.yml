@@ -1,0 +1,5 @@
+# !planetiler-charites-ai theme-meta
+# Theme-wide metadata. Same shape as the split-style theme's schema/_meta.yml.
+schema_name: Monaco Combined
+schema_description: "Monaco theme authored with schema and style co-located per layer (PoC for the schema-and-style format)."
+attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'

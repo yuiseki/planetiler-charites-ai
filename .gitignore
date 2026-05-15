@@ -1,0 +1,30 @@
+node_modules/
+api/.venv/
+api/__pycache__/
+__pycache__/
+
+# Generated build artifacts under data/. The committed assets (N03 polygon,
+# tileserver config) are explicitly allowed below.
+data/*.pbf
+data/*.mbtiles
+data/*.pmtiles
+data/*.yml
+data/*.style.yml
+data/*.json
+data/sources/*.zip
+data/sources/*.osm.pbf
+data/sources/water-polygons-split-*/
+data/sources/simplified-water-polygons-split-*/
+data/tmp/
+data/tile_weights.tsv.gz
+data/monaco_sea.geojson
+data/taito_boundary.geojson
+data/tokyo23_boundary.geojson
+
+# Allow reference assets that we ship with the repo:
+!data/.gitkeep
+!data/sources/N03-20240101_13.geojson
+!tile-server/config.json
+
+.env
+.DS_Store

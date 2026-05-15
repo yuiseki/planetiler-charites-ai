@@ -1,0 +1,13 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - background.yml
+# Schema layer: (none -- background has no data source)
+# Reads attributes: (none)
+# Instructions:
+#   - solid background colour
+id: background
+type: background
+paint:
+  # Background is the land colour. The sea layer (osmdata-derived water
+  # polygons) overlays sea-coloured polygons on top.
+  background-color: "#f1ede5"

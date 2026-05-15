@@ -1,0 +1,20 @@
+{
+  "name": "planetiler-charites-ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build-schema": "tsx scripts/build-schema.ts",
+    "build-style": "tsx scripts/build-style.ts",
+    "build": "tsx scripts/build.ts",
+    "instruct": "tsx scripts/instruct.ts"
+  },
+  "dependencies": {
+    "@unvt/charites": "^2.1.11",
+    "yaml": "^2.6.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

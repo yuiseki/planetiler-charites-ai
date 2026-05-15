@@ -1,0 +1,21 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: admin
+# Geometry: line
+# Sources: osm
+# Attributes:
+#   - admin_level: string ("4" prefecture, "6" city, "7-8" ward / cho)
+# Style consumers:
+#   - style/layers/admin.yml
+# Instructions:
+#   - administrative boundary lines (ward edges so the user can see where Taito ends)
+- id: admin
+  features:
+    - source: osm
+      geometry: line
+      include_when:
+        boundary: administrative
+      min_zoom: 0
+      min_size: 0
+      attributes:
+        - key: admin_level
+          value: '${ feature.tags.admin_level }'

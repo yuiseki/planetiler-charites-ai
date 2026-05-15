@@ -1,0 +1,24 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - water.yml
+# Schema layer: water
+# Reads attributes:
+#   - class
+# Instructions:
+#   - render water polygons
+#   - colour sea vs lake vs river differently
+id: water
+type: fill
+source: monaco
+source-layer: water
+paint:
+  fill-color:
+    - match
+    - ["get", "class"]
+    - "sea"
+    - "#a8d3e6"
+    - "lake"
+    - "#9fcae0"
+    - "river"
+    - "#8fc1da"
+    - "#a8d3e6"

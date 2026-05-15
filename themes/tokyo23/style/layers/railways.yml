@@ -1,0 +1,27 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - railways.yml
+# Schema layer: railways
+# Reads attributes:
+#   - class
+# Instructions:
+#   - 線路を赤色で表示
+#   - railway lines styled in red
+id: railways
+type: line
+source: tokyo23
+source-layer: railways
+layout:
+  line-cap: round
+  line-join: round
+paint:
+  line-color: "#d62828"
+  line-width:
+    [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      8, 0.6,
+      12, 1.4,
+      16, 3,
+    ]

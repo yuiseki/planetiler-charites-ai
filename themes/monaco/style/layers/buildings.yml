@@ -1,0 +1,17 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - buildings.yml
+# Schema layer: buildings
+# Reads attributes:
+#   - height
+#   - levels
+# Instructions:
+#   - render building footprints
+#   - simple flat fill (3d extrusion is a TODO upgrade)
+id: buildings
+type: fill
+source: monaco
+source-layer: buildings
+paint:
+  fill-color: "#d6cfc1"
+  fill-outline-color: "#b3a98f"

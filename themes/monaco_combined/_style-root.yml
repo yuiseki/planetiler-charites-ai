@@ -1,0 +1,11 @@
+# !planetiler-charites-ai theme-style-root
+# Style-only. MapLibre top-level fields (version, glyphs, sources). The
+# `sources.<key>` here must match the source name used in style.source of each
+# layer; build-combined.ts will check this and the source-layer contract too.
+version: 8
+name: Monaco Combined
+glyphs: "fonts/{fontstack}/{range}.pbf"
+sources:
+  monaco_combined:
+    type: vector
+    url: "mbtiles://monaco_combined"

@@ -1,0 +1,29 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - place-labels.yml
+# Schema layer: places
+# Reads attributes:
+#   - name
+#   - class
+# Instructions:
+#   - place-name text labels, sized by place class
+id: place-labels
+type: symbol
+source: tokyo23
+source-layer: places
+layout:
+  text-field: ["get", "name"]
+  text-font: ["Noto Sans Regular"]
+  text-size:
+    - interpolate
+    - ["linear"]
+    - ["zoom"]
+    - 10
+    - ["match", ["get", "class"], "city", 16, "town", 14, "suburb", 12, "neighbourhood", 11, 10]
+    - 16
+    - ["match", ["get", "class"], "city", 28, "town", 22, "suburb", 18, "neighbourhood", 15, 13]
+  text-allow-overlap: false
+paint:
+  text-color: "#333"
+  text-halo-color: "#fff"
+  text-halo-width: 1.5

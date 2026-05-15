@@ -1,0 +1,4 @@
+# !planetiler-charites-ai schema-meta
+schema_name: Taito Minimal
+schema_description: "Tokyo Taito-ku theme (PoC for scaling planetiler-charites-ai to a denser, larger area than Monaco)."
+attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'

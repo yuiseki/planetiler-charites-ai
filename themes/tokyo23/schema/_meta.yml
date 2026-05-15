@@ -1,0 +1,4 @@
+# !planetiler-charites-ai schema-meta
+schema_name: Tokyo 23 Wards
+schema_description: "Tokyo 23 special wards -- scale test for planetiler-charites-ai (95MB OSM PBF)."
+attribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>'

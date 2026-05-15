@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>planetiler-charites-ai</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <style>
+    :root { --bar-h: 44px; }
+    html, body { margin: 0; height: 100%; font-family: -apple-system, system-ui, sans-serif; }
+    #bar {
+      height: var(--bar-h); padding: 6px 12px; background: #1a1a1a; color: #ddd;
+      display: flex; align-items: center; gap: 8px; box-sizing: border-box;
+    }
+    #bar form { display: flex; gap: 6px; flex: 1; }
+    #bar input {
+      flex: 1; padding: 6px 10px; border-radius: 4px; border: 1px solid #444;
+      background: #222; color: #eee; font: inherit;
+    }
+    #bar button {
+      padding: 6px 14px; border-radius: 4px; border: 0; background: #4a90e2;
+      color: #fff; font: inherit; cursor: pointer;
+    }
+    #bar button:disabled { background: #555; cursor: wait; }
+    #map { position: absolute; top: var(--bar-h); bottom: 0; width: 100%; }
+    #log {
+      position: absolute; right: 12px; bottom: 12px; width: 440px; max-height: 60vh;
+      background: rgba(0,0,0,0.88); color: #eee; padding: 12px 14px;
+      font: 13px/1.55 -apple-system, system-ui, sans-serif;
+      border-radius: 8px; overflow: auto; display: none; z-index: 10;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    #log .step { display: flex; gap: 8px; align-items: baseline; }
+    #log .step .label { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    #log .step .status { font-weight: 600; }
+    #log .step .status.run::after { content: ""; animation: dots 1.4s steps(4) infinite; }
+    #log .step .status.done { color: #79e2a4; }
+    #log .step.hl { font-weight: 700; }
+    #log .step.hl .status.done { color: #6cf299; }
+    #log .text { color: #cfcfcf; margin: 6px 0; }
+    #log .err  { color: #ff8a8a; }
+    #log .meta { color: #888; font-size: 11px; }
+    #log .you  { color: #aac4ff; font-weight: 600; margin-bottom: 4px; }
+    @keyframes dots {
+      0%   { content: "."; }
+      25%  { content: ".."; }
+      50%  { content: "..."; }
+      75%  { content: ""; }
+    }
+  </style>
+</head>
+<body>
+  <div id="bar">
+    <form id="instruct-form">
+      <input id="instruct-input" placeholder="例: buildings を濃い青に / 道路を太く / sea の色を薄く" autocomplete="off">
+      <button type="submit" id="instruct-submit">送信</button>
+    </form>
+  </div>
+  <div id="map"></div>
+  <pre id="log"></pre>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+  <script>
+    const protocol = new pmtiles.Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
+
+    const THEME = new URLSearchParams(location.search).get('theme') || 'monaco';
+    document.title = 'planetiler-charites-ai -- ' + THEME;
+
+    let map;
+
+    async function loadStyleAndApply() {
+      const style = await fetch(`/data/${THEME}.json?ts=` + Date.now()).then(r => r.json());
+      const sourceKey = Object.keys(style.sources)[0];
+      // Override mbtiles:// URL with pmtiles:// + cache bust.
+      style.sources[sourceKey] = {
+        type: "vector",
+        url: `pmtiles:///data/${THEME}.pmtiles?ts=` + Date.now()
+      };
+      if (!map) {
+        map = new maplibregl.Map({ container: "map", style: style, hash: true });
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        if (!window.location.hash && Array.isArray(style.bounds) && style.bounds.length === 4) {
+          map.once('load', () => map.fitBounds(style.bounds, { padding: 20, duration: 0 }));
+        }
+        window.__map = map;
+      } else {
+        map.setStyle(style);
+      }
+    }
+
+    loadStyleAndApply();
+
+    // ---- instruct form -----------------------------------------------------
+    const form = document.getElementById('instruct-form');
+    const input = document.getElementById('instruct-input');
+    const submit = document.getElementById('instruct-submit');
+    const log = document.getElementById('log');
+
+    function appendLine(cls, text) {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.textContent = text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    }
+
+    // tool_use_id -> { labelEl, statusEl, highlight }
+    const pendingSteps = new Map();
+
+    function addStep(id, label, { highlight = false } = {}) {
+      const row = document.createElement('div');
+      row.className = 'step' + (highlight ? ' hl' : '');
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'label';
+      labelSpan.textContent = label;
+      const status = document.createElement('span');
+      status.className = 'status run';
+      row.appendChild(labelSpan);
+      row.appendChild(status);
+      log.appendChild(row);
+      log.scrollTop = log.scrollHeight;
+      pendingSteps.set(id, { row, labelSpan, status, highlight });
+      return id;
+    }
+
+    function finishStep(id, ok = true) {
+      const s = pendingSteps.get(id);
+      if (!s) return;
+      s.status.classList.remove('run');
+      s.status.classList.add(ok ? 'done' : 'err');
+      s.status.textContent = ok ? ' DONE!' : ' FAILED';
+      pendingSteps.delete(id);
+    }
+
+    function describeTool(name, input) {
+      if (name === 'Read')   return 'Reading file';
+      if (name === 'Edit')   return 'Editing file';
+      if (name === 'Write')  return 'Adding file';
+      if (name === 'Glob')   return 'Searching files';
+      if (name === 'Grep')   return 'Searching content';
+      if (name === 'Bash') {
+        const cmd = (input && input.command) || '';
+        if (/-pmtiles\b/.test(cmd))  return { label: 'Building PMTiles', highlight: true };
+        if (/-build\b/.test(cmd))    return 'Building schema & style';
+        if (/^\s*ls\b/.test(cmd))    return 'Listing files';
+        if (/^\s*cat\b/.test(cmd))   return 'Reading file';
+        return 'Running ' + (cmd.length > 50 ? cmd.slice(0, 50) + '…' : cmd);
+      }
+      return name;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const instruction = input.value.trim();
+      if (!instruction) return;
+      log.style.display = 'block';
+      log.innerHTML = '';
+      pendingSteps.clear();
+      submit.disabled = true;
+      appendLine('you', '> ' + instruction);
+
+      let buffer = '';
+      try {
+        const resp = await fetch('/api/instruct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instruction, theme: THEME })
+        });
+        if (!resp.ok || !resp.body) {
+          append('err', 'HTTP ' + resp.status);
+          return;
+        }
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += dec.decode(value, { stream: true });
+          // SSE frames are separated by blank lines.
+          let idx;
+          while ((idx = buffer.indexOf('\n\n')) >= 0) {
+            const frame = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 2);
+            const line = frame.split('\n').find(l => l.startsWith('data: '));
+            if (!line) continue;
+            const data = line.slice(6);
+            let msg;
+            try { msg = JSON.parse(data); } catch { append('meta', data.slice(0, 200)); continue; }
+            renderMsg(msg);
+          }
+        }
+      } catch (err) {
+        appendLine('err', String(err));
+      } finally {
+        submit.disabled = false;
+      }
+    });
+
+    function renderMsg(msg) {
+      if (msg.type === 'assistant' && msg.message?.content) {
+        for (const c of msg.message.content) {
+          if (c.type === 'text' && c.text) appendLine('text', c.text);
+          if (c.type === 'tool_use') {
+            const desc = describeTool(c.name, c.input);
+            const label = typeof desc === 'string' ? desc : desc.label;
+            const highlight = typeof desc === 'object' && desc.highlight;
+            addStep(c.id, label, { highlight });
+          }
+        }
+      } else if (msg.type === 'user' && msg.message?.content) {
+        for (const c of msg.message.content) {
+          if (c.type === 'tool_result') {
+            const ok = !c.is_error;
+            finishStep(c.tool_use_id, ok);
+          }
+        }
+      } else if (msg.type === 'result') {
+        // Result text is already shown through assistant `text` blocks; skip
+        // duplicating it here.
+      } else if (msg.type === 'done') {
+        // Finish any still-running step (rare -- usually all tools have
+        // already returned by now).
+        for (const id of [...pendingSteps.keys()]) finishStep(id, msg.exit === 0);
+        // claude is done editing -- now kick off the build, streaming its
+        // own SSE.
+        runBuild();
+      } else if (msg.type === 'system' && msg.subtype === 'init') {
+        appendLine('meta', 'claude session ' + (msg.session_id || '').slice(0, 8));
+      }
+    }
+
+    async function runBuild() {
+      const id = 'build-' + Date.now();
+      addStep(id, 'Building PMTiles', { highlight: true });
+      const step = pendingSteps.get(id);
+      const updateSub = (sub) => {
+        if (!step) return;
+        step.labelSpan.textContent = sub
+          ? 'Building PMTiles · ' + sub
+          : 'Building PMTiles';
+      };
+
+      try {
+        const resp = await fetch('/api/build', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ theme: THEME })
+        });
+        if (!resp.ok || !resp.body) {
+          finishStep(id, false);
+          appendLine('err', 'build HTTP ' + resp.status);
+          return;
+        }
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        let buffer = '';
+        let exit = 0;
+        let lastPhase = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += dec.decode(value, { stream: true });
+          let idx;
+          while ((idx = buffer.indexOf('\n\n')) >= 0) {
+            const frame = buffer.slice(0, idx);
+            buffer = buffer.slice(idx + 2);
+            const line = frame.split('\n').find(l => l.startsWith('data: '));
+            if (!line) continue;
+            let msg;
+            try { msg = JSON.parse(line.slice(6)); } catch { continue; }
+            if (msg.type === 'log') {
+              // Pull phase tag like "[osm_pass1]" or "[archive]" out of
+              // Planetiler progress lines.
+              const m = msg.line.match(/\[([a-z_]+)\]/i);
+              if (m && m[1] !== lastPhase) {
+                lastPhase = m[1];
+                updateSub(lastPhase);
+              }
+              // Surface FINISHED / fatal errors to the visible log.
+              if (/FINISHED!/.test(msg.line)) updateSub(lastPhase + ' finalising');
+              if (/Exception|Error/.test(msg.line)) appendLine('err', msg.line);
+            } else if (msg.type === 'done') {
+              exit = msg.exit;
+            }
+          }
+        }
+        updateSub('');
+        finishStep(id, exit === 0);
+        if (exit === 0) {
+          const refresh = 'refresh-' + Date.now();
+          addStep(refresh, 'Refreshing map', { highlight: true });
+          await loadStyleAndApply();
+          finishStep(refresh, true);
+        }
+      } catch (err) {
+        finishStep(id, false);
+        appendLine('err', String(err));
+      }
+    }
+  </script>
+</body>
+</html>

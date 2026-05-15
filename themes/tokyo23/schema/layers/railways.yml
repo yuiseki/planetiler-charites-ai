@@ -1,0 +1,33 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: railways
+# Geometry: line
+# Sources: osm
+# Attributes:
+#   - name
+#   - class: rail | subway | light_rail | monorail | tram | narrow_gauge | funicular
+# Style consumers:
+#   - style/layers/railways.yml
+# Instructions:
+#   - 線路を表示
+#   - railway lines
+#   - 鉄道路線
+- id: railways
+  features:
+    - source: osm
+      geometry: line
+      include_when:
+        railway:
+          - rail
+          - subway
+          - light_rail
+          - monorail
+          - tram
+          - narrow_gauge
+          - funicular
+          - preserved
+      min_zoom: 8
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: class
+          value: '${ feature.tags.railway }'

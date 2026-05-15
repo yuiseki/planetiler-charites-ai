@@ -1,0 +1,7 @@
+# !planetiler-charites-ai theme-sources
+# Schema-only. Sources have no style counterpart, so they live at the theme
+# root rather than inside a layer file.
+sources:
+  osm:
+    type: osm
+    local_path: /data/monaco-latest.osm.pbf

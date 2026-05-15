@@ -1,0 +1,10 @@
+# !planetiler-charites-ai layer
+# Layer ID: background
+# Kind: style-only (no schema counterpart -- pure paint layer)
+# Instructions:
+#   - solid background colour, also stands in for land
+style:
+  id: background
+  type: background
+  paint:
+    background-color: "#f1ede5"

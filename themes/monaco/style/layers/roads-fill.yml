@@ -1,0 +1,46 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - roads-fill.yml
+# Schema layer: roads
+# Reads attributes:
+#   - class
+# Instructions:
+#   - light inner stroke (rendered after casing, slightly thinner)
+#   - colour scales by class (motorway is brightest)
+id: roads-fill
+type: line
+source: monaco
+source-layer: roads
+minzoom: 11
+layout:
+  line-cap: round
+  line-join: round
+paint:
+  line-color:
+    - match
+    - ["get", "class"]
+    - "motorway"
+    - "#fbb03b"
+    - "trunk"
+    - "#f4a259"
+    - "primary"
+    - "#fcd6a4"
+    - "secondary"
+    - "#fff2c2"
+    - "tertiary"
+    - "#ffffff"
+    - "minor"
+    - "#ffffff"
+    - "service"
+    - "#ffffff"
+    - "#f0e8d8"
+  line-width:
+    - interpolate
+    - ["linear"]
+    - ["zoom"]
+    - 11
+    - ["match", ["get", "class"], "motorway", 1.5, "trunk", 1.2, "primary", 0.8, 0]
+    - 14
+    - ["match", ["get", "class"], "motorway", 4, "trunk", 3.5, "primary", 2.8, "secondary", 2.4, "tertiary", 2, "minor", 1.6, "service", 0.8, 0.4]
+    - 18
+    - ["match", ["get", "class"], "motorway", 18, "trunk", 15, "primary", 12, "secondary", 11, "tertiary", 9, "minor", 7, "service", 4, 2]

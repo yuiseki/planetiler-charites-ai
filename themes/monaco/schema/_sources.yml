@@ -1,0 +1,14 @@
+# !planetiler-charites-ai schema-sources
+# OSM-only sources. Natural Earth was removed when this theme was profiled --
+# NE's 446MB GPKG dominated build time (1m29s/1m31s) for a Monaco-scale theme
+# that only needs z10+. For a theme that targets z0-9 (planet-scale), add NE
+# back as `natural_earth: { type: geopackage, url: ..., projection: EPSG:4326 }`.
+sources:
+  osm:
+    type: osm
+    local_path: /data/monaco-latest.osm.pbf
+  # osmdata.openstreetmap.de simplified water polygons (EPSG:3857), reprojected
+  # to 4326 and clipped to Monaco bbox by `make monaco-coastline`.
+  sea:
+    type: geojson
+    local_path: /data/monaco_sea.geojson

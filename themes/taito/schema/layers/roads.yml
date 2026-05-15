@@ -1,0 +1,45 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: roads
+# Geometry: line
+# Sources: osm
+# Attributes:
+#   - name
+#   - class: motorway | trunk | primary | secondary | tertiary | minor | service | pedestrian | path
+# Style consumers:
+#   - style/layers/roads.yml
+# Instructions:
+#   - 道路を表示
+#   - roads and streets
+#   - highway lines
+- id: roads
+  features:
+    - source: osm
+      geometry: line
+      include_when:
+        highway:
+          - motorway
+          - motorway_link
+          - trunk
+          - trunk_link
+          - primary
+          - primary_link
+          - secondary
+          - secondary_link
+          - tertiary
+          - tertiary_link
+          - unclassified
+          - residential
+          - living_street
+          - service
+          - pedestrian
+          - footway
+          - path
+          - cycleway
+          - steps
+          - track
+      min_zoom: 6
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: class
+          value: '${ feature.tags.highway }'

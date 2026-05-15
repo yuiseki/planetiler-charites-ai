@@ -1,0 +1,31 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: places
+# Geometry: point
+# Sources: osm
+# Attributes:
+#   - name
+#   - class: city | town | suburb | neighbourhood | village | quarter
+# Style consumers:
+#   - style/layers/place-labels.yml
+# Instructions:
+#   - place-name labels (Ueno, Asakusa, Yanaka, ...)
+- id: places
+  features:
+    - source: osm
+      geometry: point
+      include_when:
+        place:
+          - city
+          - town
+          - suburb
+          - neighbourhood
+          - village
+          - hamlet
+          - quarter
+      min_zoom: 0
+      min_size: 0
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: class
+          value: '${ feature.tags.place }'

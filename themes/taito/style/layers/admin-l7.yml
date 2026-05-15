@@ -1,0 +1,25 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - admin-l7.yml
+# Schema layer: admin
+# Reads attributes:
+#   - admin_level
+# Instructions:
+#   - blue dotted line for admin_level=7 (Tokyo ward edges)
+#   - paired with admin.yml -- see that file for why this is split out
+id: admin-l7
+type: line
+source: taito
+source-layer: admin
+filter: ["==", ["get", "admin_level"], "7"]
+paint:
+  line-color: "#1e6fff"
+  line-dasharray: [1, 2]
+  line-width:
+    - interpolate
+    - ["linear"]
+    - ["zoom"]
+    - 10
+    - 1.6
+    - 14
+    - 2.8

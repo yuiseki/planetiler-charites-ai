@@ -1,0 +1,10 @@
+# !planetiler-charites-ai schema-sources
+# Tokyo 23 wards -- inland; OSM + authoritative MLIT ward polygons only.
+sources:
+  osm:
+    type: osm
+    local_path: /data/tokyo23-latest.osm.pbf
+  # MLIT N03 (2024-01-01) polygons for all 23 special wards.
+  tokyo23_boundary:
+    type: geojson
+    local_path: /data/tokyo23_boundary.geojson

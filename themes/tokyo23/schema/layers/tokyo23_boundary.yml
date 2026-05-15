@@ -1,0 +1,15 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: tokyo23_boundary
+# Geometry: polygon
+# Sources: tokyo23_boundary  (MLIT N03 2024-01-01, exact Taito-ku polygon)
+# Attributes: (none)
+# Style consumers:
+#   - style/layers/tokyo23-boundary.yml
+# Instructions:
+#   - authoritative ward boundary; rendered as a bold outline
+- id: tokyo23_boundary
+  features:
+    - source: tokyo23_boundary
+      geometry: polygon
+      min_zoom: 0
+      min_size: 0

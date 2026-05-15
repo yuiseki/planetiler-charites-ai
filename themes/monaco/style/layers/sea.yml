@@ -1,0 +1,13 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - sea.yml
+# Schema layer: sea
+# Reads attributes: (none)
+# Instructions:
+#   - mediterranean sea fill, sits directly above background
+id: sea
+type: fill
+source: monaco
+source-layer: sea
+paint:
+  fill-color: "#a8d3e6"

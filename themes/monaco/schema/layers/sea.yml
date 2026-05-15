@@ -1,0 +1,16 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: sea
+# Geometry: polygon
+# Sources: sea  (osmdata.openstreetmap.de simplified water polygons,
+#                EPSG:3857 -> 4326 + clipped to Monaco bbox)
+# Attributes: (none)
+# Style consumers:
+#   - style/layers/sea.yml
+# Instructions:
+#   - mediterranean sea polygon
+- id: sea
+  features:
+    - source: sea
+      geometry: polygon
+      min_zoom: 0
+      min_size: 0

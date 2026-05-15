@@ -1,0 +1,40 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: parks
+# Geometry: polygon
+# Sources: osm
+# Attributes:
+#   - name
+#   - class: park | garden | playground | grass | recreation_ground | forest | wood | meadow | pitch
+# Style consumers:
+#   - style/layers/parks.yml
+# Instructions:
+#   - green areas
+#   - parks and gardens
+#   - 公園を緑色で表示
+- id: parks
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        leisure:
+          - park
+          - garden
+          - playground
+          - pitch
+          - nature_reserve
+          - golf_course
+        landuse:
+          - grass
+          - recreation_ground
+          - forest
+          - meadow
+          - village_green
+        natural:
+          - wood
+      min_zoom: 8
+      min_size: 0
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: class
+          value: '${ coalesce(feature.tags.leisure, feature.tags.landuse, feature.tags.natural) }'

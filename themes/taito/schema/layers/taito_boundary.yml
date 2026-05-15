@@ -1,0 +1,15 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: taito_boundary
+# Geometry: polygon
+# Sources: taito_boundary  (MLIT N03 2024-01-01, exact Taito-ku polygon)
+# Attributes: (none)
+# Style consumers:
+#   - style/layers/taito-boundary.yml
+# Instructions:
+#   - authoritative ward boundary; rendered as a bold outline
+- id: taito_boundary
+  features:
+    - source: taito_boundary
+      geometry: polygon
+      min_zoom: 0
+      min_size: 0

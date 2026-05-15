@@ -1,0 +1,9 @@
+services:
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    ports:
+      - "8000:8080"
+    volumes:
+      - ./data:/data
+      - ./tile-server/config.json:/etc/tileserver/config.json:ro
+    command: ["--config", "/etc/tileserver/config.json"]

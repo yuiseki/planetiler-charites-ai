@@ -1,0 +1,44 @@
+# !planetiler-charites-ai layer
+# Layer ID: water
+# Kind: combined (schema + style co-authored)
+# Instructions:
+#   - osm water polygons
+#   - rivers, lakes, generic water
+#
+# Contract: schema.id MUST equal style.source-layer. build-combined.ts will
+# fail the build if they drift.
+
+schema:
+  id: water
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        natural: water
+      min_zoom: 0
+      min_size: 0
+      attributes:
+        - key: class
+          type: string
+          value:
+            match:
+              - value: river
+                if: { water: river }
+              - value: lake
+                if: { water: lake }
+              - else: water
+
+style:
+  id: water
+  type: fill
+  source: monaco_combined
+  source-layer: water
+  paint:
+    fill-color:
+      - match
+      - ["get", "class"]
+      - "lake"
+      - "#9fcae0"
+      - "river"
+      - "#8fc1da"
+      - "#a8d3e6"

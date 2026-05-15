@@ -1,0 +1,30 @@
+# !planetiler-charites-ai schema-layer
+# Layer ID: buildings
+# Geometry: polygon
+# Sources: osm
+# Attributes:
+#   - name: string, osm tag "name" (added in the schema-change cycle-time benchmark)
+#   - height: number, parsed from osm tag "height" when present
+#   - levels: number, parsed from osm tag "building:levels" when present
+# Style consumers:
+#   - style/layers/buildings.yml
+# Instructions:
+#   - building footprints
+#   - 3d buildings extrusion
+- id: buildings
+  features:
+    - source: osm
+      geometry: polygon
+      include_when:
+        building: __any__
+      min_zoom: 0
+      # Override Planetiler's default polygon-size cutoff (1px) so individual
+      # Monaco buildings (sub-pixel at low zoom) survive at z0.
+      min_size: 0
+      attributes:
+        - key: name
+          value: '${ feature.tags.name }'
+        - key: height
+          value: '${ feature.tags.height }'
+        - key: levels
+          value: '${ feature.tags["building:levels"] }'

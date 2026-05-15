@@ -1,0 +1,27 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - parks.yml
+# Schema layer: parks
+# Reads attributes:
+#   - class
+# Instructions:
+#   - render parks and green spaces as green polygons
+#   - subtle variation between park / garden / forest / grass
+id: parks
+type: fill
+source: monaco
+source-layer: parks
+paint:
+  fill-color:
+    - match
+    - ["get", "class"]
+    - "forest"
+    - "#9ec79a"
+    - "nature_reserve"
+    - "#aed4a8"
+    - "garden"
+    - "#c2e0b6"
+    - "grass"
+    - "#cce8bd"
+    - "#b8dba7"
+  fill-opacity: 0.9

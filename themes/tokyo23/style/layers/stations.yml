@@ -1,0 +1,27 @@
+# !planetiler-charites-ai style-layer
+# File name of this style:
+#   - stations.yml
+# Schema layer: stations
+# Reads attributes:
+#   - name
+#   - class
+# Instructions:
+#   - 駅を赤色で表示
+#   - station points styled in red
+id: stations
+type: circle
+source: tokyo23
+source-layer: stations
+paint:
+  circle-color: "#d62828"
+  circle-stroke-color: "#ffffff"
+  circle-stroke-width: 1
+  circle-radius:
+    [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      10, 2,
+      14, 4,
+      18, 7,
+    ]
