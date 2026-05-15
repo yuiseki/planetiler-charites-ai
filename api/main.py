@@ -30,12 +30,25 @@ app.add_middleware(
 )
 
 
-# Tools the agent is allowed to invoke. Read/Edit/Write for fragment edits,
-# Bash(make *) so it can rebuild, Bash(npx tsx *) for direct script use.
-ALLOWED_TOOLS = "Read Edit Write Bash(make *) Bash(npx tsx *) Bash(ls *) Bash(cat *) Glob Grep"
-
-
 _THEME_RE = __import__("re").compile(r"^[A-Za-z0-9_]+$")
+
+
+def _allowed_tools_for(theme: str) -> list[str]:
+    """Tight allowlist scoped to a single theme.
+
+    * No `bypassPermissions` -- `acceptEdits` is enough because every Bash
+      command we expect is in this list. Anything else triggers a permission
+      prompt that `-p` cannot answer, so the agent fails loudly instead of
+      silently doing something we didn't authorise.
+    * Glob patterns inside `Bash(...)` are claude-side: `Bash(make {theme}-build)`
+      matches exactly that command, `Bash(ls *)` matches any `ls` argument.
+    """
+    return [
+        "Read", "Edit", "Write", "Glob", "Grep",
+        f"Bash(make {theme}-build)",
+        "Bash(ls *)",
+        "Bash(cat *)",
+    ]
 
 
 @app.post("/api/instruct")
@@ -44,7 +57,7 @@ async def instruct(payload: dict = Body(...)):
     theme = (payload.get("theme") or "monaco").strip()
     if not instruction:
         return {"error": "instruction required"}
-    if not theme.replace("_", "").isalnum():
+    if not _THEME_RE.match(theme):
         return {"error": "invalid theme name"}
 
     cmd = [
@@ -52,15 +65,16 @@ async def instruct(payload: dict = Body(...)):
         "-p", instruction,
         "--output-format", "stream-json",
         "--verbose",
-        "--allowedTools", *ALLOWED_TOOLS.split(),
-        # acceptEdits only auto-approves Edit/Write. Bash needs bypassPermissions
-        # (the allowedTools allowlist still restricts which Bash commands run).
-        "--permission-mode", "bypassPermissions",
+        "--allowedTools", *_allowed_tools_for(theme),
+        "--permission-mode", "acceptEdits",
         "--max-budget-usd", "1",
         "--append-system-prompt",
         (
             f"The current theme is '{theme}'. Edit fragments under themes/{theme}/ only. "
-            f"After every edit, run: make {theme}-build && make {theme}-pmtiles. "
+            f"After every edit, run exactly `make {theme}-build` and stop. "
+            f"Do NOT run `make {theme}-pmtiles` -- the web UI runs that after you "
+            f"finish so it can stream Planetiler progress to the user. "
+            f"Do NOT chain commands with `&&` or `;` -- run each command on its own. "
             f"If you add a new layer that uses an OSM tag that is rare in the source PBF, "
             f"prefer wider include_when patterns so the user actually sees something on the map."
         ),

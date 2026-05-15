@@ -8,7 +8,9 @@ The web UI lets you type things like *“parks in green”* or *“thicker roads
 
 [![Image from Gyazo](https://i.gyazo.com/08c303fe39b4e4bf48bbc6514873131b.jpg)](https://gyazo.com/08c303fe39b4e4bf48bbc6514873131b)
 
-> No hosted demo -- same policy as [charites-ai](https://github.com/yuiseki/charites-ai). The agent runs `claude -p` with `--permission-mode bypassPermissions` and shell access to the repo, which is too much authority to expose on a public URL. Clone and run locally to try it.
+> No hosted demo -- same policy as [charites-ai](https://github.com/yuiseki/charites-ai). The agent runs `claude -p` with shell write access to this repo, which is too much authority to expose on a public URL. Clone and run locally to try it.
+>
+> Locally the agent is scoped tight: `--permission-mode acceptEdits` plus an explicit `--allowedTools "Read Edit Write Glob Grep Bash(make {theme}-build) Bash(ls *) Bash(cat *)"`. Anything outside that list raises a permission prompt that `-p` cannot answer, so the agent fails loudly instead of silently doing something we didn't authorise.
 
 ## Lineage
 
@@ -95,7 +97,7 @@ With the server running, type instructions into the bar at the top of the UI:
 The flow:
 
 1. UI → `POST /api/instruct` with `{ instruction, theme }`.
-2. FastAPI spawns `claude -p ... --output-format stream-json --permission-mode bypassPermissions --allowedTools "Read Edit Write Bash(make *) ..."`.
+2. FastAPI spawns `claude -p ... --output-format stream-json --permission-mode acceptEdits --allowedTools "Read Edit Write Glob Grep Bash(make {theme}-build) Bash(ls *) Bash(cat *)"`.
 3. Claude reads CLAUDE.md + fragment headers, edits the right files, runs `make {theme}-build` (which runs the contract validator + MapLibre validator).
 4. UI receives `done` → calls `POST /api/build` → FastAPI runs `make {theme}-pmtiles` and streams Planetiler stdout as SSE.
 5. UI reloads the style + PMTiles → the map updates.
