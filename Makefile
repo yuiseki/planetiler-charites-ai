@@ -12,6 +12,13 @@ DOCKER_RUN = docker run --rm \
     -v "$(pwd)/data":/data \
     ghcr.io/onthegomap/planetiler:latest
 
+# Path to a planet-scale OSM PBF (~80GB). Required only for the
+# `coastline-planet` target. Override on the command line:
+#   make coastline-planet PLANET_PBF=/path/to/planet-latest.osm.pbf
+PLANET_PBF ?= /Users/yuiseki/src/github.com/geolonia/tmp/data/osm-planet/pbf/planet-260427.osm.pbf
+COASTLINE_PLANET_PBF = data/sources/coastline-planet.osm.pbf
+COASTLINE_PLANET_DB = data/sources/coastline-planet.db
+
 MONACO_PBF_URL = https://download.geofabrik.de/europe/monaco-latest.osm.pbf
 # Geofabrik Kanto region (Tokyo + neighbouring prefectures, ~700MB). Used as
 # the source for Tokyo themes so third parties can reproduce without any
@@ -99,6 +106,45 @@ monaco: monaco-data monaco-coastline monaco-build monaco-tiles
 	@echo "Next: docker compose up -d  &&  open http://localhost:8000/styles/monaco/"
 
 # ---- Cleanup -------------------------------------------------------------
+
+# ---- Self-hosted osmcoastline (requires planet PBF) ---------------------
+
+.PHONY: coastline-planet
+coastline-planet: $(COASTLINE_PLANET_DB)
+
+$(COASTLINE_PLANET_PBF): $(PLANET_PBF)
+	@mkdir -p data/sources
+	@echo "Extracting natural=coastline from $(PLANET_PBF) (~15-30 min)..."
+	osmium tags-filter $(PLANET_PBF) natural=coastline \
+		-o $(COASTLINE_PLANET_PBF) --overwrite
+
+$(COASTLINE_PLANET_DB): $(COASTLINE_PLANET_PBF)
+	@echo "Running osmcoastline at planet scale (~2 hours)..."
+	rm -f $(COASTLINE_PLANET_DB)
+	# osmcoastline exits with code 2 when it emits warnings about questionable
+	# input rings (~600 expected on planet scale). The output is still valid,
+	# so we suppress exit code 2 but propagate anything worse.
+	osmcoastline --output-polygons=both --verbose \
+		-o $(COASTLINE_PLANET_DB) $(COASTLINE_PLANET_PBF) ; \
+		ec=$$? ; if [ $$ec -gt 2 ]; then exit $$ec ; fi
+
+# ---- Planet-derived sea polygons for each theme -------------------------
+
+.PHONY: monaco-sea-from-planet
+monaco-sea-from-planet: $(COASTLINE_PLANET_DB)
+	ogr2ogr -f GeoJSON -lco RFC7946=YES \
+		-clipdst 7.3 43.4 7.7 43.8 \
+		data/monaco_sea.geojson \
+		$(COASTLINE_PLANET_DB) water_polygons
+	@echo "wrote data/monaco_sea.geojson from planet osmcoastline"
+
+.PHONY: tokyo23-sea-from-planet
+tokyo23-sea-from-planet: $(COASTLINE_PLANET_DB)
+	ogr2ogr -f GeoJSON -lco RFC7946=YES \
+		-clipdst 139.55 35.52 139.93 35.82 \
+		data/tokyo23_sea.geojson \
+		$(COASTLINE_PLANET_DB) water_polygons
+	@echo "wrote data/tokyo23_sea.geojson from planet osmcoastline"
 
 # ---- Shared: Kanto PBF + N03 ward polygons ------------------------------
 
